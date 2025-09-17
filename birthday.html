@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday — 3D Surprise</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --accent:#ff5c8a;
+      --accent2:#ffd166;
+      --glass: rgba(255,255,255,0.06);
+      --card:#0f1724;
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(255,92,138,0.06), transparent 8%),
+                  radial-gradient(900px 400px at 90% 80%, rgba(255,209,102,0.03), transparent 8%),
+                  var(--bg);
+      color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden
+    }
+
+    /* Stage */
+    .stage{width:100%;max-width:1100px;height:80vh;display:grid;grid-template-columns:1fr 420px;gap:24px;padding:32px;box-sizing:border-box}
+
+    /* Left: 3D scene */
+    .scene{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      border-radius:18px;padding:28px;display:flex;align-items:center;justify-content:center;backdrop-filter: blur(6px);
+      box-shadow: 0 8px 30px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+      perspective:1200px;position:relative;overflow:visible
+    }
+
+    /* 3D wrapper */
+    .world{width:520px;height:380px;transform-style:preserve-3d;transition:transform 600ms cubic-bezier(.2,.9,.2,1);}
+
+    /* Ground */
+    .ground{position:absolute;left:50%;bottom:28px;width:680px;height:60px;background:linear-gradient(90deg,#08122a,#0b1630);border-radius:100px;transform:translateX(-50%) rotateX(80deg) translateZ(-40px);filter:blur(6px);opacity:0.5}
+
+    /* Cake — built with layers (3D boxes) */
+    .cake{
+      width:220px;height:160px;position:relative;margin:0 auto;transform-style:preserve-3d;transform-origin:center bottom;
+      transform:translateY(20px) rotateX(14deg) rotateY(-12deg);
+    }
+    .layer{position:absolute;left:50%;transform:translateX(-50%);box-sizing:border-box;border-radius:18px;display:flex;align-items:center;justify-content:center}
+
+    .layer.bottom{width:220px;height:60px;background:linear-gradient(180deg,#7a2a6f,#5a184d);bottom:0;z-index:1;box-shadow:0 10px 30px rgba(45,5,78,0.6)}
+    .layer.middle{width:190px;height:52px;background:linear-gradient(180deg,#ffb3c4,#ff6b96);bottom:42px;z-index:2;}
+    .layer.top{width:160px;height:46px;background:linear-gradient(180deg,#fff7e6,#ffd59a);bottom:84px;z-index:3;color:#111;font-weight:700}
+
+    /* Frosting drips */
+    .drip{position:absolute;background:linear-gradient(180deg,#fff,#ffd9a8);width:12px;height:28px;border-radius:8px;bottom:86px;left:calc(50% + 30px);transform-origin:top}
+    .drip:after{content:'';position:absolute;left:-4px;top:20px;width:20px;height:20px;border-radius:50%;background:inherit}
+
+    /* Candles */
+    .candles{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:12px}
+    .candle{width:10px;height:34px;background:linear-gradient(180deg,#fff,#f2f2f2);border-radius:2px;position:relative;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+    .flame{position:absolute;left:50%;transform:translateX(-50%);top:-10px;width:12px;height:18px;border-radius:50% 50% 50% 50%;background: radial-gradient(circle at 30% 30%, #fff3b0, #ff9b3d 40%, transparent 60%);filter:drop-shadow(0 6px 8px rgba(255,150,60,0.15));animation:flicker 1.2s infinite}
+    @keyframes flicker{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.12)}100%{transform:translateX(-50%) scale(1)}}
+
+    /* Balloons */
+    .balloon{position:absolute;width:80px;height:110px;border-radius:50% 50% 45% 45%;display:flex;align-items:flex-end;justify-content:center}
+    .balloon:after{content:'';width:2px;height:46px;background:linear-gradient(180deg,#fff,rgba(255,255,255,0.04));position:absolute;bottom:-36px}
+    .balloon.blue{background:linear-gradient(180deg,#90cdf4,#2b6cb0);left:30px;top:20px;transform:translateZ(60px) rotateY(-12deg)}
+    .balloon.pink{background:linear-gradient(180deg,#ffb7da,#ff5c8a);right:40px;top:0;transform:translateZ(40px) rotateY(8deg)}
+    .balloon.gold{background:linear-gradient(180deg,#ffe9b5,#ffd166);left:120px;top:40px;transform:translateZ(30px)}
+
+    /* Floating hearts */
+    .heart{position:absolute;width:36px;height:36px;left:50%;transform:translateX(-50%);top:20px;background:transparent}
+    .heart svg{filter:drop-shadow(0 6px 10px rgba(0,0,0,0.4));}
+
+    /* Right: controls + message */
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:16px;padding:22px;color:#fff;display:flex;flex-direction:column;gap:12px}
+    .title{font-size:20px;font-weight:700}
+    .message{background:var(--glass);padding:14px;border-radius:10px;min-height:120px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{background:linear-gradient(90deg,var(--accent),#ff7aa9);border:none;padding:10px 14px;border-radius:10px;color:#111;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(255,92,138,0.18)}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
+
+    /* Confetti canvas covers scene */
+    canvas.confetti{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+
+    /* Popup overlay */
+    .overlay{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s}
+    .overlay.open{opacity:1;visibility:visible}
+    .card{background:linear-gradient(180deg,#0f1724,#0b1220);padding:28px;border-radius:16px;min-width:320px;max-width:720px;box-shadow:0 20px 60px rgba(2,6,23,0.6)}
+    .card h2{margin:0 0 8px 0}
+    .card p{margin:0 0 14px 0}
+
+    /* Responsive */
+    @media (max-width:980px){
+      .stage{grid-template-columns:1fr;grid-auto-rows:1fr}
+      .world{transform:scale(.85)}
+      .scene{height:60vh}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="scene" id="scene">
+      <div class="world" id="world">
+        <div class="cake" id="cake" aria-hidden="true">
+          <div class="layer bottom"></div>
+          <div class="layer middle"></div>
+          <div class="layer top"> </div>
+          <div class="drip" style="left:calc(50% + -54px); transform: rotate(-18deg);"></div>
+          <div class="drip" style="left:calc(50% + 34px); transform: rotate(10deg); height:34px;"></div>
+          <div class="candles" id="candles">
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+            <div class="candle"><div class="flame"></div></div>
+          </div>
+        </div>
+
+        <div class="balloon blue"></div>
+        <div class="balloon pink"></div>
+        <div class="balloon gold"></div>
+
+        <div class="heart" style="top:6px">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21s-7.5-4.9-9.2-7.2C1.5 11.9 3.3 8 6.7 6.9 9.2 6 11.5 7.2 12 8.5c.5-1.3 2.8-2.5 5.3-1.6 3.4 1.1 5.2 5 3.9 7.9C19.5 16.1 12 21 12 21z" fill="#ff5c8a"/>
+          </svg>
+        </div>
+
+        <div class="ground"></div>
+
+        <canvas class="confetti" id="confetti"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="title">3D Birthday Surprise</div>
+      <div class="message" id="messageArea">Happy Birthday! Click <strong>Surprise!</strong> to reveal a special message and play the tune. Edit the message in the popup or change the name at the top of the HTML to personalize.</div>
+
+      <div class="controls">
+        <button class="btn" id="surpriseBtn">Surprise!</button>
+        <button class="btn ghost" id="toggleRotate">Toggle 3D Rotate</button>
+        <button class="btn ghost" id="muteBtn">Mute Tune</button>
+      </div>
+
+      <div style="margin-top:auto;font-size:13px;opacity:0.9">Tip: Save this file as <code>birthday_3d_surprise.html</code> and open it in a modern browser. You can edit the variable <code>recipientName</code> near the top of the script to insert your girlfriend's name.</div>
+    </div>
+  </div>
+
+  <!-- overlay popup -->
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h2 id="popupTitle">A little love</h2>
+      <p id="popupText">Wishing you the happiest of birthdays. You're my sun on cloudy days — love you forever.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+        <button class="btn" id="closePopup">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Personalize here
+    const recipientName = 'My Love'; // <-- change this to your girlfriend's name
+    const personalizedMessage = `Happy Birthday, ${recipientName}! 🎉\nYou mean the world to me.`;
+
+    // DOM
+    const world = document.getElementById('world');
+    const cake = document.getElementById('cake');
+    const surpriseBtn = document.getElementById('surpriseBtn');
+    const overlay = document.getElementById('overlay');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupText = document.getElementById('popupText');
+    const closePopup = document.getElementById('closePopup');
+    const messageArea = document.getElementById('messageArea');
+    const confettiCanvas = document.getElementById('confetti');
+    const toggleRotate = document.getElementById('toggleRotate');
+    const muteBtn = document.getElementById('muteBtn');
+
+    messageArea.textContent = personalizedMessage;
+
+    // small interactive 3D tilt based on mouse
+    const scene = document.getElementById('scene');
+    let rotateEnabled = true;
+    scene.addEventListener('mousemove', (e)=>{
+      if(!rotateEnabled) return;
+      const r = scene.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top + r.height/2;
+      const dx = (e.clientX - cx)/r.width;
+      const dy = (e.clientY - cy)/r.height;
+      world.style.transform = `rotateX(${dy*8}deg) rotateY(${dx*18}deg)`;
+    });
+    scene.addEventListener('mouseleave', ()=>{ if(rotateEnabled) world.style.transform='rotateX(14deg) rotateY(-12deg)'; });
+
+    toggleRotate.addEventListener('click', ()=>{ rotateEnabled = !rotateEnabled; toggleRotate.textContent = rotateEnabled? 'Disable 3D Rotate':'Enable 3D Rotate'; if(!rotateEnabled) world.style.transform='rotateX(0deg) rotateY(0deg)'; });
+
+    // Popup
+    surpriseBtn.addEventListener('click', ()=>{
+      popupTitle.textContent = `Happy Birthday, ${recipientName}!`;
+      popupText.textContent = `This is your special day — I made this just for you. Hope it brings a smile!`;
+      overlay.classList.add('open');
+      launchConfetti();
+      playTune();
+    });
+    closePopup.addEventListener('click', ()=>{ overlay.classList.remove('open'); stopTune(); });
+
+    // Confetti simple
+    const ctx = confettiCanvas.getContext('2d');
+    let confettiPieces = [];
+    let confettiRunning = false;
+
+    function resizeCanvas(){ confettiCanvas.width = confettiCanvas.clientWidth; confettiCanvas.height = confettiCanvas.clientHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    function createConfetti(){
+      confettiPieces = [];
+      const colors = ['#ff5c8a','#ffd166','#90cdf4','#a78bfa','#fda4af'];
+      for(let i=0;i<120;i++){
+        confettiPieces.push({
+          x: Math.random()*confettiCanvas.width,
+          y: Math.random()*-confettiCanvas.height,
+          w: 6+Math.random()*10,
+          h: 8+Math.random()*10,
+          vx: -1+Math.random()*2,
+          vy: 2+Math.random()*4,
+          r: Math.random()*360,
+          vr: -6+Math.random()*12,
+          c: colors[Math.floor(Math.random()*colors.length)],
+        });
+      }
+    }
+
+    function drawConfetti(){
+      ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+      for(const p of confettiPieces){
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r*Math.PI/180);
+        ctx.fillStyle = p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+        p.x += p.vx; p.y += p.vy; p.r+= p.vr*0.3;
+        if(p.y>confettiCanvas.height+40){p.y = Math.random()*-200; p.x = Math.random()*confettiCanvas.width;}
+      }
+      if(confettiRunning) requestAnimationFrame(drawConfetti);
+    }
+
+    function launchConfetti(){ createConfetti(); confettiRunning=true; drawConfetti(); setTimeout(()=>confettiRunning=false,7000); }
+
+    // Simple WebAudio tune (no external file)
+    let audioCtx, o, gainNode;
+    let tunePlaying=false;
+    function playTune(){
+      if(tunePlaying) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      gainNode = audioCtx.createGain(); gainNode.gain.value = 0.09; gainNode.connect(audioCtx.destination);
+      const notes = [523.25,523.25,783.99,659.25,587.33,523.25,392.00]; // simple melody
+      let t = audioCtx.currentTime+0.05;
+      for(let i=0;i<notes.length;i++){
+        const freq = notes[i];
+        const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq; osc.connect(gainNode);
+        osc.start(t); osc.stop(t+0.28);
+        t += 0.32;
+      }
+      tunePlaying=true;
+      // stop after melody
+      setTimeout(()=>{tunePlaying=false;}, notes.length*320);
+    }
+    function stopTune(){ if(audioCtx) { try{ audioCtx.close(); }catch(e){} audioCtx=null; tunePlaying=false; } }
+
+    let muted=false;
+    muteBtn.addEventListener('click', ()=>{ muted=!muted; if(muted){ stopTune(); muteBtn.textContent='Unmute Tune'; } else { muteBtn.textContent='Mute Tune'; } });
+
+    // small breathing animation for cake (scale)
+    (()=>{
+      let t=0;
+      function anim(){ t+=0.02; const s = 1 + Math.sin(t)/110; cake.style.transform = `translateY(20px) rotateX(14deg) rotateY(-12deg) scale(${s})`; requestAnimationFrame(anim);} anim();
+    })();
+
+    // optional autoplay hearts and floating animations
+    (()=>{
+      const balloons = document.querySelectorAll('.balloon');
+      balloons.forEach((b,i)=>{
+        const dx = Math.random()*20-10; const dur = 6 + Math.random()*4;
+        b.animate([{transform: b.style.transform+' translateY(0px)'},{transform: b.style.transform+` translateY(-40px) translateX(${dx}px)`},{transform: b.style.transform+' translateY(0px)'}],{duration:dur*1000,iterations:Infinity,easing:'ease-in-out',direction:'alternate'});
+      });
+      const hearts = document.querySelectorAll('.heart');
+      hearts.forEach((h)=>{ h.animate([{transform:'translateY(0) scale(1)'},{transform:'translateY(-40px) scale(1.1)'},{transform:'translateY(0) scale(1)'}],{duration:2400,iterations:Infinity}) });
+    })();
+
+    // Allow keyboard "S" to trigger surprise
+    window.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='s'){ surpriseBtn.click(); } if(e.key==='Escape'){ overlay.classList.remove('open'); stopTune(); } });
+
+    // small accessibility: close on overlay click
+    overlay.addEventListener('click',(ev)=>{ if(ev.target===overlay){ overlay.classList.remove('open'); stopTune(); } });
+
+  </script>
+</body>
+</html>
